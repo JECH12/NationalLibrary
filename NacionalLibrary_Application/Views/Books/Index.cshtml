@@ -1,0 +1,102 @@
+﻿@model List<NacionalLibrary_Application.Models.BookModel>
+
+@{
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">Books</h3>
+            <a class="btn btn-light text-primary fw-bold" href="/Books/Create">
+                <i class="bi bi-plus-lg"></i> Add New Book
+            </a>
+        </div>
+
+        <div class="card-body">
+
+            <table class="table table-hover align-middle">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Title</th>
+                        <th>Publisher</th>
+                        <th>Page Count</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var book in Model)
+                    {
+                        <tr>
+                            <td>@book.Title</td>
+                            <td>@book.Editorial!.Name</td>
+                            <td>@book.PageCount</td>
+                            <td class="text-end">
+                                <a class="btn btn-warning btn-sm me-1" href="/Books/Edit/@book.Id">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </a>
+                                <button class="btn btn-danger btn-sm" data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal" data-id="@book.Id"
+                                        data-title="@book.Title">
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+</div>
+
+<!--- Modal --->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete <strong id="bookTitle"></strong>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="confirmDelete" class="btn btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let bookIdToDelete;
+
+        var deleteModal = document.getElementById('deleteModal');
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            bookIdToDelete = button.getAttribute('data-id');
+            var title = button.getAttribute('data-title');
+            document.getElementById('bookTitle').textContent = title;
+        });
+
+        document.getElementById('confirmDelete').addEventListener('click', function () {
+            fetch(`/Books/Delete/${bookIdToDelete}`, {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload(); 
+                } else {
+                    alert('Cannot delete this book.');
+                }
+            });
+        });
+    </script>
+}
